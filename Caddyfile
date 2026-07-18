@@ -1,37 +1,32 @@
-:443 {
-    tls {
-        # Let's Encrypt auto-provisioning via Railway's domain
-        # Railway provides *.railway.app or *.up.railway.app
-    }
+{
+    auto_https off
+    admin off
+    persist_config off
+}
 
+:{$PORT} {
     @vless_ws {
-        path /${UUID}-vless*
+        path /{$UUID}-vless*
         header Connection *Upgrade*
         header Upgrade websocket
     }
     reverse_proxy @vless_ws 127.0.0.1:10000
 
     @vmess_ws {
-        path /${UUID}-vmess*
+        path /{$UUID}-vmess*
         header Connection *Upgrade*
         header Upgrade websocket
     }
     reverse_proxy @vmess_ws 127.0.0.1:10001
 
     @trojan_ws {
-        path /${UUID}-trojan*
+        path /{$UUID}-trojan*
         header Connection *Upgrade*
         header Upgrade websocket
     }
     reverse_proxy @trojan_ws 127.0.0.1:10002
 
-    # Fallback — serve a decoy page so it looks like a normal web service
+    # Decoy site for non-proxy requests
     root * /usr/share/caddy
     file_server
-
-    header / {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-    }
 }
