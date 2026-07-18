@@ -1,18 +1,18 @@
 #!/bin/sh
 
-# Read UUID from environment, or generate one
 UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)}
 
 echo "========================================="
 echo "  UUID: $UUID"
-echo "  Server domain will be assigned by Railway"
+echo "  Railway will assign domain & TLS"
+echo "  Caddy listens on PORT: $PORT"
 echo "========================================="
 
 # Substitute UUID into configs
 sed -i "s/\${UUID}/$UUID/g" /config.json
 sed -i "s/\${UUID}/$UUID/g" /etc/caddy/Caddyfile
 
-# Create decoy web pages
+# Create decoy web directory
 mkdir -p /usr/share/caddy
 cat > /usr/share/caddy/index.html << 'EOF'
 <!DOCTYPE html>
@@ -25,5 +25,5 @@ EOF
 # Start Xray in background
 /xray -config /config.json &
 
-# Start Caddy on Railway's port (maps to 443 externally)
+# Start Caddy — Railway injects $PORT (8080 default)
 caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
